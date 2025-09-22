@@ -1,0 +1,1171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Registro de Tareas — Admin + Dashboard (v10)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#f5f7fb;
+  --card:#fff;
+  --ink:#111827;
+  --muted:#6b7280;
+
+  /* Netcom */
+  --pri:#001489;   /* PANTONE Reflex Blue */
+  --priD:#00106e;  /* Hover/dark */
+  --acc:#FE5000;   /* PANTONE Orange 021 */
+  --red:#dc2626;
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,system-ui,Segoe UI,Roboto,Arial,sans-serif}
+.small{color:var(--muted);font-size:13px}
+.wrap{max-width:1200px;margin:0 auto;padding:16px;display:none}
+.card{
+  background:var(--acc);   /* Naranja corporativo */
+  color:#fff;              /* Texto en blanco */
+  padding:26px;
+  border-radius:14px;
+  box-shadow:0 8px 22px rgba(0,0,0,.08);
+}
+
+.login .card h2, .login .card label, .login .card .small { color:#fff; }
+
+input{
+  background:#fff;
+  color:#111;
+  border:1px solid #ccc;
+  border-radius:10px;
+  padding:10px 12px;
+}
+
+.login{display:flex;align-items:center;justify-content:center;min-height:100vh}
+.login .card{width:380px;text-align:center}
+input,select,textarea{width:100%;padding:10px 12px;margin-top:8px;border:1px solid #e5e7eb;border-radius:10px;font-size:14px;background:#fff}
+.btn{background:var(--pri);color:#fff;border:none;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+.btn:hover{background:var(--priD)}
+.btn.ghost{background:#eef2ff;color:#3730a3}
+.btn.danger{background:#fee2e2;color:#991b1b}
+.btn.small{padding:6px 10px;font-size:12px}
+.bar{display:flex;justify-content:space-between;align-items:center;margin:12px 0;gap:10px;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap}
+ul{list-style:none;margin:0;padding:0}
+li{padding:10px;border-bottom:1px solid #f3f4f6}
+.tag{display:inline-block;background:#f3f4f6;border-radius:999px;padding:2px 8px;margin-left:6px;font-size:12px}
+.admin{display:none;margin-top:14px}
+.tabs{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.tab-btn{border:1px solid #e5e7eb;border-radius:999px;padding:8px 12px;background:#fff;cursor:pointer}
+.tab-btn.active{background:#eef2ff;border-color:#c7d2fe}
+.tab{display:none}
+.tab.active{display:block}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th,td{padding:8px;border-bottom:1px solid #f3f4f6;text-align:left;font-size:14px}
+.pill{display:inline-block;background:#f3f4f6;border-radius:999px;padding:2px 8px;margin:2px 4px 0 0;font-size:12px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.timer{font-variant-numeric:tabular-nums;font-weight:700}
+.active-list .item{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:8px;background:#fff}
+.active-list .meta{flex:1}
+.active-list .actions{display:flex;gap:8px;flex-wrap:wrap}
+.clock{font-variant-numeric:tabular-nums;color:#6b7280}
+pre.log{background:#0b1020;color:#9fef9f;border-radius:10px;padding:10px;white-space:pre-wrap}
+.order-row{display:flex;align-items:center;gap:8px;margin:4px 0}
+.order-idx{min-width:28px;text-align:right}
+
+:root{...}
+/* ==============================
+   Estilos Netcom unificados
+   ============================== */
+
+/* Layout login */
+.login {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.login .card {
+  width: 420px;
+  max-width: 92vw;
+  text-align: center;
+}
+
+/* Tarjetas */
+.card {
+  background: var(--acc, #fe5000); /* naranja corporativo */
+  color: #fff;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
+
+.card h2,
+.card label,
+.card .small {
+  color: #fff;
+}
+
+/* Inputs */
+input,
+select,
+textarea {
+  background: #fff;
+  color: #111;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  padding: 10px 12px;
+  width: 100%;
+}
+
+/* Ajuste título “Quality Timer” */
+.card h2 {
+  margin-top: -10px;   /* súbelo un poco */
+  margin-bottom: 10px; /* espacio debajo */
+  text-align: center;
+}
+
+/* Botones */
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* texto blanco solo cuando NO está deshabilitado */
+.btn:not(.ghost):not(:disabled){
+  color:#fff !important;
+}
+.btn:not(.ghost):not(:disabled) *{
+  color:#fff !important;
+}
+
+
+/* Paleta de acciones */
+.btn.pausar { background: #001489; }   /* azul corporativo */
+.btn.guardar { background: #fe5000; }  /* naranja */
+.btn.detener { background: #dc2626; }  /* rojo */
+
+/* Botones deshabilitados */
+.btn:disabled {
+  background: #f3f4f6 !important;
+  color: #6b7280 !important;
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Ajuste texto dentro de tarjetas blancas */
+.card .inner {
+  color: #111; /* gris oscuro/negro */
+}
+
+/* Responsivo */
+@media (max-width: 480px) {
+  .logo { width: 120px; margin-bottom: 8px; }
+  .login .card { width: 360px; }
+}
+
+/* Texto de detalles en tareas en curso (subtítulo debajo del título) */
+.active-list .meta,
+.active-list .meta span,
+.order-row {
+  color: #444 !important;   /* gris oscuro */
+  font-size: 14px;          /* un poco más pequeño */
+  font-weight: normal;      /* más liviano que el título */
+}
+
+/* Forzar texto legible SOLO dentro de Tareas en curso */
+.active-list .item,
+.active-list .item p,
+.active-list .item div,
+.active-list .item span{
+  color:#111 !important;        /* negro/gris oscuro */
+}
+
+/* Subtítulos/linea de detalles un poco más suave */
+.active-list .meta,
+.active-list .small{
+  color:#444 !important;        /* gris oscuro */
+  font-size:14px;
+  font-weight:normal;
+}
+
+/* Mantener estilos de botones y chips dentro de la lista */
+.active-list .item .btn{        /* botones siguen blancos sobre color */
+  color:#fff !important;
+}
+.active-list .item .pill{       /* chips grises legibles */
+  color:#6b7280 !important;
+}
+
+/* Layout vertical para cada tarea */
+.active-list .item{
+  display:flex;
+  flex-direction: column !important;   /* de fila → columna */
+  align-items: stretch !important;      /* que ocupen todo el ancho */
+  gap: 8px;
+}
+
+/* Cada bloque a lo ancho */
+.active-list .item > *{
+  width: 100%;
+}
+
+/* Título, detalles, timer como bloques */
+.active-list strong{ display:block; }   /* ej: "Informe de resultados" */
+.active-list .meta,
+.active-list .small,
+.active-list .note,
+.active-list .timer{ display:block; }
+
+/* Botones abajo y centrados */
+.active-list .actions{
+  display:flex;
+  justify-content: center !important;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+/* Botón Guardar deshabilitado */
+.btn.guardar:disabled {
+  background: #f3f4f6 !important;
+  color: #222 !important;
+}
+
+/* Botón Detener deshabilitado */
+.btn.detener:disabled {
+  background: #f3f4f6 !important;
+  color: #222 !important;
+}
+
+/* FORZAR color legible en botones deshabilitados (pase lo que pase arriba) */
+.btn:disabled,
+.btn:disabled *,
+button:disabled,
+button:disabled *{
+  color:#1f2937 !important;              /* gris/negro visible */
+  -webkit-text-fill-color:#1f2937 !important; /* por si algún tema usa text-fill */
+}
+
+/* Fondos claritos para distinguirlos, sin perder legibilidad */
+.btn.guardar:disabled{ background:#eef2ff !important; }  /* azul muy claro */
+.btn.detener:disabled{ background:#fdeaea !important; }  /* rojo muy claro */
+
+/* App: textos secundarios legibles */
+#app .card .small,
+#app .card .meta,
+#app .card .meta span { color:#444 !important; }
+
+/* App: botones */
+#app .card .btn:not(.ghost){ color:#fff !important; }        /* Pausar (sólido) blanco */
+#app .card .btn:disabled,
+#app .card .btn:disabled *{ color:#222 !important; }         /* Guardar/Detener legibles */
+
+/* Opcional: fondos claritos para deshabilitados */
+#app .card .btn.guardar:disabled{ background:#eef2ff !important; }
+#app .card .btn.detener:disabled{ background:#fdeaea !important; }
+
+/* Acciones de la tarjeta (Pausar/Guardar/Detener) */
+.active-list .actions button:disabled,
+.active-list .actions button[disabled],
+.active-list .actions button[aria-disabled="true"]{
+  background:#fdeaea !important;          /* rosado claro */
+  color:#7f1d1d !important;                /* rojo oscuro legible */
+  -webkit-text-fill-color:#7f1d1d !important;
+  opacity:1 !important;                    /* evita que se lave demasiado */
+}
+
+.active-list .actions button:disabled *,
+.active-list .actions button[disabled] *,
+.active-list .actions button[aria-disabled="true"] *{
+  color:#7f1d1d !important;
+  -webkit-text-fill-color:#7f1d1d !important;
+}
+
+/* ====== Accesibilidad: texto visible en botones deshabilitados ====== */
+
+/* No lavar el texto de botones deshabilitados en la tarjeta de Tareas en curso */
+#app .active-list .actions .btn[disabled],
+#app .active-list .actions .btn:disabled{
+  opacity: 1 !important;
+}
+
+/* Guardar (ghost) deshabilitado: fondo claro y texto gris oscuro legible */
+#app .active-list .actions .btn.ghost:disabled{
+  background: #eef2ff !important;
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
+}
+
+/* Detener (danger) deshabilitado: fondo rosado claro y texto rojo oscuro legible */
+#app .active-list .actions .btn.danger:disabled{
+  background: #fdeaea !important;
+  color: #7f1d1d !important;
+  -webkit-text-fill-color: #7f1d1d !important;
+}
+
+/* Botones de la sección "Nueva tarea" */
+#btnPause:disabled,
+#btnStop:disabled{
+  opacity: 1 !important;
+  color: #1f2937 !important;
+  -webkit-text-fill-color: #1f2937 !important;
+}
+#btnStop:disabled{
+  background: #fdeaea !important;
+  color: #7f1d1d !important;
+  -webkit-text-fill-color: #7f1d1d !important;
+}
+
+/* ===== FIX definitivo: texto visible en "Detener" deshabilitado ===== */
+
+/* Asegura que NINGUNA regla anterior lo deje blanco */
+#app .active-list .actions .btn.danger:disabled,
+#app .active-list .actions .btn.danger[disabled],
+#app .active-list .actions .btn.detener:disabled,
+#app .active-list .actions .btn.detener[disabled]{
+  /* fondo suave + SIN aclararlo de más */
+  background: #fdeaea !important;
+  opacity: 1 !important;
+}
+
+/* Texto rojo oscuro 100% legible (incluye spans internos) */
+#app .active-list .actions .btn.danger:disabled,
+#app .active-list .actions .btn.danger:disabled *,
+#app .active-list .actions .btn.detener:disabled,
+#app .active-list .actions .btn.detener:disabled *,
+#app .active-list .actions .btn.danger[disabled],
+#app .active-list .actions .btn.danger[disabled] *,
+#app .active-list .actions .btn.detener[disabled],
+#app .active-list .actions .btn.detener[disabled] *{
+  color: #7f1d1d !important;
+  -webkit-text-fill-color: #7f1d1d !important; /* por si hay WebKit text-fill */
+  text-shadow: none !important;
+}
+
+/* Si alguna regla global forza blanco en .small dentro del botón, lo anulamos aquí */
+#app .active-list .actions .btn:disabled .small{
+  color:#7f1d1d !important;
+  -webkit-text-fill-color:#7f1d1d !important;
+}
+
+/* ===== Switch bonito para #allowParallel ===== */
+#allowParallel.switchify{
+  /* anula estilos globales del input */
+  -webkit-appearance:none;
+  appearance:none;
+  padding:0 !important;
+  border:none !important;
+
+  /* switch */
+  width:48px; 
+  height:28px;
+  background:#eceff1;
+  border-radius:999px;
+  position:relative;
+  display:inline-block;
+  vertical-align:middle;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.06);
+  cursor:pointer;
+  transition:background .2s ease, box-shadow .2s ease;
+}
+
+/* “perilla” */
+#allowParallel.switchify::after{
+  content:"";
+  position:absolute;
+  top:3px; left:3px;
+  width:22px; height:22px;
+  background:#fff;
+  border-radius:50%;
+  box-shadow:0 1px 2px rgba(0,0,0,.35);
+  transition:transform .2s ease;
+}
+
+/* encendido (usa tu azul corporativo si quieres) */
+#allowParallel.switchify:checked{
+  background:#001489; /* azul corporativo */
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.08);
+}
+
+/* desplaza la perilla a la derecha */
+#allowParallel.switchify:checked::after{
+  transform:translateX(20px);
+}
+
+/* efecto al presionar */
+#allowParallel.switchify:active::after{
+  transform:translateX(0) scale(.96);
+}
+#allowParallel.switchify:checked:active::after{
+  transform:translateX(20px) scale(.96);
+}
+
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login" class="login">
+  <div class="card">
+    <!-- Logo Netcom en SVG -->
+<svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 120">
+  <!-- Flecha izquierda -->
+  <polygon points="0,60 40,20 40,100" fill="#FFFFFF"/>
+  <!-- Texto NETCOM junto -->
+<text x="45" y="95" font-family="Arial, sans-serif" font-size="95" font-weight="bold" fill="#FFFFFF">NETCOM</text>
+  <!-- Flecha derecha -->
+  <polygon points="500,60 460,20 460,100" fill="#FFFFFF"/>
+</svg>
+
+    <h2>Quality Timer (NQT)</h2>
+    <div class="small">Usuario y contraseña</div>
+    <input id="lu" placeholder="usuario" autocomplete="username">
+    <input id="lp" type="password" placeholder="contraseña" autocomplete="current-password">
+    <button id="btnLogin" class="btn" style="margin-top:10px">Entrar</button>
+    <div id="lmsg" class="small" style="color:#b91c1c;height:18px;margin-top:8px"></div>
+  </div>
+</div>
+
+
+
+
+<!-- APP -->
+<div id="app" class="wrap">
+  <div class="bar">
+    <div><strong>Netcom Quality Timer: NQT</strong> <span id="who" class="small"></span></div>
+    <div class="clock" id="clock">--:--:--</div>
+    <div>
+      <span id="adminTools" style="display:none">
+        <label class="small"><input type="checkbox" id="viewAll" checked> Ver todos</label>
+        <button id="toggleAdmin" class="btn small ghost">Panel admin</button>
+      </span>
+      <button id="logout" class="btn ghost">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <div class="card">
+        <h3>Nueva tarea</h3>
+
+        <label>Tarea</label>
+        <select id="tarea" required></select>
+
+        <label>Subtarea</label>
+        <select id="subtarea" required></select>
+
+        <label>Proyecto</label>
+        <select id="proyecto" required></select>
+        <div id="pnote" class="small"></div>
+
+        <label>Comentario</label>
+        <textarea id="comentario" rows="3" placeholder="Opcional..."></textarea>
+
+        <label>País</label>
+        <select id="pais" required>
+          <option value="">-- Seleccionar --</option>
+          <option>Costa Rica</option><option>Panamá</option><option>Colombia</option>
+        </select>
+
+        <label>Analista</label>
+        <select id="analista" required></select>
+        <div id="anote" class="small"></div>
+
+
+
+<!-- Toggle bonito para paralelo -->
+<label class="switch">
+  <input id="allowParallel" type="checkbox" class="switchify" />
+  <span class="switch-track"></span>
+  <span class="switch-label">Permitir iniciar esta tarea en paralelo</span>
+</label>
+
+
+
+        <div class="btnrow" style="margin-top:10px">
+          <button class="btn" id="btnStart">Iniciar</button>
+          <button class="btn ghost" id="btnPause" disabled>Pausar</button>
+          <button class="btn danger" id="btnStop" disabled>Detener</button>
+        </div>
+        <div class="small" style="margin-top:6px">Tip: al iniciar otra tarea se pausa automáticamente la que esté en curso.</div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <h3>Registros</h3>
+        <div class="btnrow">
+          <button class="btn ghost" id="exportXLSX">Exportar Excel (.xlsx)</button>
+          <button class="btn ghost" id="exportCSV">Exportar CSV</button>
+          <button class="btn danger" id="clearOwn">Borrar mis registros</button>
+          <button class="btn danger" id="clearAll" style="display:none">Borrar TODO (admin)</button>
+        </div>
+        <ul id="list" style="margin-top:10px"></ul>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Tareas en curso</h3>
+        <div id="activeList" class="active-list"></div>
+      </div>
+
+      <!-- Diagnóstico: solo admin -->
+      <div class="card" id="diagCard" style="display:none; margin-top:12px">
+        <h3>Diagnóstico rápido</h3>
+        <div class="small">Endpoint actual: <code id="ep"></code><br>Token: <code id="tok"></code></div>
+        <div class="btnrow" style="margin-top:8px">
+          <button id="btnPing" class="btn small ghost">Probar conexión (GET)</button>
+        </div>
+        <pre id="log" class="log"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMIN -->
+  <div id="admin" class="admin">
+    <!-- Dashboard -->
+    <div id="adminDash" class="card" style="margin-bottom:12px; display:none">
+      <h3>Dashboard en vivo</h3>
+      <div class="small">Analista, tarea corriendo, tiempo transcurrido y cantidad de registros.</div>
+      <div style="margin:8px 0; display:flex; gap:8px; align-items:center">
+        <button id="dashRefresh" class="btn small ghost">Actualizar</button>
+        <label class="small"><input type="checkbox" id="dashAuto" checked> Auto cada 10s</label>
+      </div>
+      <table id="dashTable">
+        <thead><tr><th>Analista</th><th>Tarea actual</th><th>Tiempo</th><th>Registros</th><th>Última actualización</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-t="users">Analistas</button>
+        <button class="tab-btn" data-t="projects">Proyectos</button>
+        <button class="tab-btn" data-t="allocs">Asignaciones</button>
+        <button class="tab-btn" data-t="tasks">Tareas/Subtareas</button>
+      </div>
+
+      <!-- Usuarios -->
+      <div id="tab-users" class="tab active">
+        <div class="grid-3">
+          <div><label>Username</label><input id="u_user"></div>
+          <div><label>Nombre visible</label><input id="u_disp"></div>
+          <div><label>Rol</label><select id="u_role"><option>analyst</option><option>admin</option></select></div>
+        </div>
+        <div class="grid-3" style="margin-top:8px">
+          <div><label>Contraseña</label><input id="u_pass" placeholder="1234"></div>
+          <div style="display:flex;align-items:flex-end;gap:8px">
+            <button id="u_add" class="btn">Agregar/Actualizar</button>
+            <button id="u_del" class="btn danger">Eliminar</button>
+          </div>
+        </div>
+        <table id="tblUsers"><thead><tr><th>Username</th><th>Nombre</th><th>Rol</th></tr></thead><tbody></tbody></table>
+      </div>
+
+      <!-- Proyectos -->
+      <div id="tab-projects" class="tab">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="p_new" placeholder="Nombre de proyecto">
+          <button id="p_add" class="btn">Agregar</button>
+        </div>
+        <div id="pills" style="margin-top:8px"></div>
+      </div>
+
+      <!-- Asignaciones -->
+      <div id="tab-allocs" class="tab">
+        <div class="grid-3">
+          <div><label>Usuario</label><select id="a_user"></select></div>
+          <div><label>Proyectos</label><select id="a_projects" multiple size="6"></select></div>
+          <div><label>Default</label><select id="a_def"></select></div>
+        </div>
+        <div style="margin-top:8px;display:flex;gap:8px">
+          <button id="a_save" class="btn">Guardar</button>
+          <button id="a_clear" class="btn ghost">Limpiar</button>
+        </div>
+        <table id="tblAlloc"><thead><tr><th>Usuario</th><th>Proyectos</th><th>Default</th></tr></thead><tbody></tbody></table>
+      </div>
+
+      <!-- Tareas/Subtareas -->
+      <div id="tab-tasks" class="tab">
+        <div class="grid-3">
+          <div>
+            <label>Nueva tarea</label>
+            <input id="t_new">
+            <button id="t_add" class="btn small" style="margin-top:8px">Agregar tarea</button>
+          </div>
+          <div>
+            <label>Tarea</label>
+            <select id="t_sel"></select>
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px">
+            <button id="t_del" class="btn danger">Eliminar tarea</button>
+          </div>
+        </div>
+
+        <!-- Renombrar tarea -->
+        <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+          <input id="t_rename" placeholder="Nuevo nombre de tarea">
+          <button id="t_ren" class="btn ghost">Renombrar tarea</button>
+        </div>
+
+        <!-- Subtareas -->
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <input id="s_new" placeholder="Agregar subtarea">
+          <button id="s_add" class="btn">Agregar subtarea</button>
+        </div>
+        <div id="s_pills" style="margin-top:8px"></div>
+
+        <h4 style="margin-top:16px">Orden de tareas</h4>
+        <div id="orderList"></div>
+
+        <table id="tblTask" style="margin-top:12px">
+          <thead><tr><th>Tarea</th><th>Subtareas</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================== CONFIG (CAMBIA ESTO) ================== */
+const ENDPOINT   = "https://script.google.com/macros/s/AKfycbyj4aE7JNlN7DwHQkcCkjgwn2VySAdkTFTvhybuTPVgutQrnbWPfyaLvEwARmLXEkKzow/exec";
+const SEC_TOKEN  = "Calidad2025!";
+const HEARTBEAT_MS = 15000;   // ping de estado al dashboard
+const IDLE_MAX_MIN = 30;      // auto-logout si no hay tareas corriendo por X minutos
+document.getElementById('ep').textContent  = ENDPOINT;
+document.getElementById('tok').textContent = SEC_TOKEN;
+/* ========================================================== */
+
+/* ===== STORAGE KEYS ===== */
+const CONFIG_KEY='cfg_v10', SESSION_KEY='sess_v1', ROWS_KEY='rows_v2', ACTIVE_KEY='activeTimers_v1';
+
+/* ===== Config por defecto ===== */
+const DEFAULT_CFG={ users:[
+  { username:'valentina',  password:'1234', display:'Valentina Londoño Cardenas', role:'analyst' },
+  { username:'stephanie',  password:'1234', display:'Stephanie Morales Sanchun', role:'analyst' },
+  { username:'roger',      password:'1234', display:'Roger Andrés Herrera Álvarez', role:'analyst' },
+  { username:'jaroth',     password:'1234', display:'Jaroth Aragón Gonzalez', role:'analyst' },
+  { username:'erick',      password:'1234', display:'Erick Suárez Armas', role:'analyst' },
+  { username:'melissa',    password:'1234', display:'Melissa Mora Rivas', role:'analyst' },
+  { username:'josepablo',  password:'1234', display:'Jose Pablo Valverde Artavia', role:'analyst' },
+  { username:'mariaangeles', password:'1234', display:'María de los Angeles Gómez Abarca', role:'analyst' },
+  { username:'evelyn',     password:'1234', display:'Evelyn Vanessa Ramirez Segura', role:'analyst' },
+  { username:'rashell',    password:'1234', display:'Smith Calvo, Rashell', role:'analyst' },
+  { username:'alexander',  password:'1234', display:'Alexander Quirós Román', role:'analyst' },
+  { username:'valery',     password:'1234', display:'Valery Paola Garro Lobo', role:'analyst' },
+  { username:'alejandra',  password:'1234', display:'Alejandra Sibaja Zúñiga', role:'analyst' },
+  { username:'mauricio',   password:'1234', display:'Mauricio Guativa Gutierrez', role:'analyst' },
+  { username:'mariela',    password:'1234', display:'Mariela Huertas Forero', role:'analyst' },
+  { username:'rodrigo',    password:'1234', display:'Rodrigo de Jesus Cajar Gonzalez', role:'analyst' },
+  { username:'admin',      password:'admin123', display:'Administrador', role:'admin' }
+], projects:[
+  'AyA','AyA Correos','AyA Redes Sociales','BAC','BAC Soporte',
+  'Banca Fácil Inbound','Banca Fácil Redes Sociales','Banco Nacional Chat','Banco Nacional Cobros','Banco Nacional Correos','Banco Nacional Inbound','Banco Nacional Outbound',
+  'BCR Gobierno Digital','BCR N1','BCR Redes Sociales','CCSS_Pensiones','Firma Digital',
+  'ICE N1','ICE N1 Correos','ICE N2','Liberty Movil','Liberty Pymes','Liberty Residencial',
+  'MAPFRE','MUCAP','Telecable','CCSS CISADI','Natury'
+], allocations:{
+  valentina:{projects:['AyA','AyA Redes Sociales','MAPFRE','MUCAP'],default:'AyA'},
+  stephanie:{projects:['AyA','AyA Correos','AyA Redes Sociales'],default:'AyA'},
+  roger:{projects:['BAC','BAC Soporte','Firma Digital'],default:'BAC'},
+  jaroth:{projects:['Banca Fácil Inbound','Banca Fácil Redes Sociales'],default:'Banca Fácil Inbound'},
+  erick:{projects:['Banco Nacional Chat','Banco Nacional Correos','Banco Nacional Inbound'],default:'Banco Nacional Inbound'},
+  melissa:{projects:['Banco Nacional Cobros','Banco Nacional Outbound'],default:'Banco Nacional Cobros'},
+  josepablo:{projects:['Banco Nacional Chat','Banco Nacional Correos','Banco Nacional Inbound'],default:'Banco Nacional Correos'},
+  mariaangeles:{projects:['Banco Nacional Chat','Banco Nacional Correos','Banco Nacional Inbound'],default:'Banco Nacional Inbound'},
+  evelyn:{projects:['Banco Nacional Chat','Banco Nacional Correos','Banco Nacional Inbound'],default:'Banco Nacional Inbound'},
+  rashell:{projects:['BCR Gobierno Digital','BCR N1','BCR Redes Sociales'],default:'BCR N1'},
+  alexander:{projects:['CCSS_Pensiones','CCSS CISADI'],default:'CCSS_Pensiones'},
+  valery:{projects:['ICE N1','ICE N1 Correos'],default:'ICE N1'},
+  alejandra:{projects:['ICE N2'],default:'ICE N2'},
+  mauricio:{projects:['Liberty Movil','Liberty Pymes','Liberty Residencial','Telecable'],default:'Liberty Movil'},
+  mariela:{projects:['Liberty Movil','Liberty Pymes','Liberty Residencial'],default:'Liberty Residencial'},
+  rodrigo:{projects:['Natury'],default:'Natury'},
+  admin:{projects:[],default:''}
+}, tasksMap:{
+  "Informe de resultados":["Informe de Calidad","Control de Monitoreos Calidad Operaciones"],
+  "Calibración":["Enviar la sesión de Calibración","Proceso de escucha de llamada (calibración)","Compartir resultados de calibración","Sesión de Des-calibración (En caso de haberlo)","Proceso de escucha de llamada (Des-Calibración)","Compartir resultados de des- calibración (En caso de haberlo)","Calibración con el cliente contratante"],
+  "Estratificado":["Estratificado"],
+  "PCAS":["Objetivo, descripción del problema (Análisis numérico)","Sesión de Análisis de las causas, origen y definición de acciones","Seguimiento y cierre del PCAS","Talleres de calidad","Acciones asignadas al analista de QA"],
+  "Análisis Speech Analytics":["Análisis Speech Analytics"],
+  "Retroalimentaciones":["Actualización y envío del archivo del Control de Retroalimentaciones","Procesos de Disputa","Calidad de Retroalimentación","Retroalimentaciones positivas","Envío de retroalimentaciones - Prioridad media y baja"],
+  "Monitoreos":["Procesos de muestreo","Monitoreo de Procesos","Descarga de bases de datos monitores","Revisión de monitores de OJT","Monitoreos Perfilados"],
+  "Capacitaciones":["Calidad de la Capacitación"],
+  "Descarga de llamadas":["Búsqueda de las llamadas en el grabador de Continuum o Avaya Contact Recorder, descarga de la llamada y enviarla","En caso de ser llamadas en Continuum que no estén en “tierra”, buscarlas en la nube de Amazon y descargarlas"],
+  "Tiempo Administrativo":["Reporte de planilla","Reporte de extras","Traslado de site","Actividades de integración","Reportes a TI (Inconvenientes con la maquina)","Citas médicas"],
+  "Solicitudes del cliente contratante":["Escucha de llamadas","Análisis de Casos (Quejas)","Solicitud: Envío de Validaciones (BN)","Auditoria: Llamadas Cortas (BN)","Auditoria: Transferencia a otras áreas (BN)","Auditoria: Correos (BN)","Apoyo a CS (BN)"],
+  "Capacitaciones (detalle)":["Capacitación E-learning","Capacitación interna","Capacitación del cliente","Capacitación de Calidad"],
+  "Sesiones":["Sesiones con Operaciones","Sesiones con el cliente","Sesiones con Jefatura Calidad","Sesiones con Capacitación"],
+  "Factura":["Factura"],
+  "Encuestas de Satisfacción y Gestión de Quejas":["Análisis de Satisfacción y recolección de quejas"],
+  "Solicitud de Jefatura":["Solicitud de Jefatura"],
+  "Apoyo a otras áreas":["Capacitación","Operaciones","WFM","RRHH","Otro"]
+}, taskOrder:[] };
+
+let CFG     = JSON.parse(localStorage.getItem(CONFIG_KEY)||'null') || structuredClone(DEFAULT_CFG);
+if(!CFG.taskOrder || !CFG.taskOrder.length) CFG.taskOrder = Object.keys(CFG.tasksMap);
+let SESSION = JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
+let ROWS    = JSON.parse(localStorage.getItem(ROWS_KEY)||'[]');
+let ACTIVE  = JSON.parse(localStorage.getItem(ACTIVE_KEY)||'{}');
+
+const $  = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+
+function saveCfg(){ localStorage.setItem(CONFIG_KEY, JSON.stringify(CFG)); }
+function saveRows(){ localStorage.setItem(ROWS_KEY, JSON.stringify(ROWS)); }
+function saveActive(){ localStorage.setItem(ACTIVE_KEY, JSON.stringify(ACTIVE)); }
+function saveSess(){ localStorage.setItem(SESSION_KEY, JSON.stringify(SESSION)); }
+
+function viewLogin(){$('#login').style.display='flex';$('#app').style.display='none';}
+function viewApp()  {$('#login').style.display='none';$('#app').style.display='block';}
+function fmtHMS(sec){sec=Math.max(0,Math.floor(sec));const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;}
+function now(){return Date.now();}
+function uid(){return 't'+Math.random().toString(36).slice(2,10);}
+
+/* ========= CONFIG remota ========= */
+async function fetchConfigFromServer(){
+  try{
+    const url = `${ENDPOINT}?action=getConfig&token=${encodeURIComponent(SEC_TOKEN)}&t=${Date.now()}`;
+    const r   = await fetch(url, { cache:'no-store' });
+    const data= await r.json();
+    if (data && data.cfg){
+      CFG = data.cfg;
+      if (!CFG.taskOrder || !CFG.taskOrder.length) CFG.taskOrder = Object.keys(CFG.tasksMap);
+      saveCfg();
+    }
+  }catch(e){ console.warn('cfg fetch', e); }
+}
+async function pushConfigToServer(){
+  try{
+    await fetch(ENDPOINT, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ token:SEC_TOKEN, type:'setConfig', cfg:CFG })
+    });
+  }catch(e){ console.warn('cfg push', e); }
+}
+function pushIfAdmin(){ if(SESSION?.role==='admin') pushConfigToServer(); }
+
+/* ========= Auditoría ========= */
+async function sendAudit(evtType){
+  try{
+    await fetch(ENDPOINT, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        token: SEC_TOKEN,
+        type:  evtType, // 'login' | 'logout' | 'presence' | 'auto-logout'
+        user:  SESSION?.username || '',
+        display: SESSION?.display || '',
+        ts: new Date().toISOString()
+      })
+    });
+  }catch(_){}
+}
+let presenceTimer=null;
+function startPresence(){ stopPresence(); presenceTimer=setInterval(()=> sendAudit('presence'), 60_000); }
+function stopPresence(){ if(presenceTimer){ clearInterval(presenceTimer); presenceTimer=null; } }
+
+function doLogout(isAuto=false){
+  sendAudit(isAuto?'auto-logout':'logout');
+  localStorage.removeItem(SESSION_KEY);
+  SESSION=null;
+  stopPresence();
+  stopIdleWatch();
+  viewLogin();
+}
+
+/* ========= Idle / auto-logout ========= */
+let idleCheckTimer=null;
+function startIdleWatch(){
+  stopIdleWatch();
+  window._idleStart=null;
+  idleCheckTimer = setInterval(()=>{
+    const arr = currentActive();
+    const hasRunning = arr.some(t=>t.running);
+    if(!hasRunning){
+      if(!window._idleStart) window._idleStart = Date.now();
+      const mins=(Date.now()-window._idleStart)/60000;
+      if(mins>=IDLE_MAX_MIN){ doLogout(true); }
+    }else{
+      window._idleStart=null;
+    }
+  }, 60_000);
+}
+function stopIdleWatch(){ if(idleCheckTimer){ clearInterval(idleCheckTimer); idleCheckTimer=null; } }
+
+/* ========= UI fills ========= */
+function fillAnalysts(){const sel=$('#analista'); sel.innerHTML=''; CFG.users.filter(u=>u.role!=='admin').forEach(u=> sel.appendChild(new Option(u.display,u.display))); }
+function fillProjectsFor(username,lock=true){const sel=$('#proyecto'); sel.innerHTML=''; const conf=CFG.allocations[username]||{projects:[],default:''}; const list=(conf.projects&&conf.projects.length)?conf.projects:CFG.projects; sel.appendChild(new Option('-- Seleccionar proyecto --','')); list.forEach(p=> sel.appendChild(new Option(p,p))); if(conf.default&&list.includes(conf.default)) sel.value=conf.default; $('#pnote').textContent=(SESSION.role==='admin'&&!lock)?'Administrador: puede seleccionar cualquier proyecto.':'Proyectos asignados por sesión.';}
+function fillTasks(){const t=$('#tarea'); t.innerHTML=''; t.appendChild(new Option('-- Seleccionar tarea --','')); const order=CFG.taskOrder&&CFG.taskOrder.length?CFG.taskOrder:Object.keys(CFG.tasksMap); order.forEach(k=>{if(CFG.tasksMap[k]) t.appendChild(new Option(k,k));}); fillSubtasks();}
+function fillSubtasks(){const s=$('#subtarea'); s.innerHTML=''; const t=$('#tarea').value; const subs=CFG.tasksMap[t]||[]; s.appendChild(new Option('-- Seleccionar subtarea --','')); subs.forEach(v=> s.appendChild(new Option(v,v)));}
+
+/* ========= Listado de registros ========= */
+function renderList(){
+  const ul=$('#list'); ul.innerHTML='';
+  const rows=(SESSION.role==='admin'&&$('#viewAll').checked)?ROWS:ROWS.filter(r=>r.owner===SESSION.username);
+  if(!rows.length){ul.innerHTML='<li><span class="small">No hay registros</span></li>';return;}
+  rows.slice().reverse().forEach(r=>{
+    const secs = (r.secs ?? ((r.mins||0)*60));
+    const li=document.createElement('li');
+    li.innerHTML=`<strong>${r.tarea}</strong> <span class="tag">${r.analista}</span>
+      <div class="small">${r.h1} → ${r.h2} — ${r.fecha}</div>
+      <div class="small">${[r.subtarea,r.proyecto,r.pais].filter(Boolean).join(' • ')}</div>
+      ${r.comentario?`<div class="small">📝 ${r.comentario}</div>`:''}
+      <div class="small">⏱ ${fmtHMS(secs)}</div>`;
+    ul.appendChild(li);
+  });
+}
+
+/* ========= Timers activos desde servidor ========= */
+async function hydrateActiveFromServer(){
+  try{
+    const r=await fetch(`${ENDPOINT}?action=active&token=${encodeURIComponent(SEC_TOKEN)}&user=${encodeURIComponent(SESSION.username)}&t=${Date.now()}`, {cache:'no-store'});
+    const data=await r.json();
+    if(data && data.active){ ACTIVE[SESSION.username]=Array.isArray(data.active)?data.active:[]; saveActive(); }
+    else { if(!ACTIVE[SESSION.username]) ACTIVE[SESSION.username]=[]; saveActive(); }
+  }catch(e){ console.warn('No se pudo hidratar desde servidor:', e); if(!ACTIVE[SESSION.username]){ ACTIVE[SESSION.username]=[]; saveActive(); } }
+}
+
+/* ========= Dashboard ========= */
+async function fetchDashboard(force=false){
+  try{
+    const url = `${ENDPOINT}?action=status&token=${encodeURIComponent(SEC_TOKEN)}&t=${Date.now()}`;
+    const r   = await fetch(url, { cache:'no-store' });
+    const data= await r.json();
+    renderDashboard(data);
+  }catch(e){ console.warn('fetchDashboard', e); }
+}
+function renderDashboard(data){
+  const tb=document.querySelector('#dashTable tbody'); if(!tb) return;
+  tb.innerHTML='';
+  const rows=data?.status||[]; const counts=data?.counts||{};
+  rows.sort((a,b)=>(a.analista||'').localeCompare(b.analista||''));
+  for(const s of rows){
+    const tr=document.createElement('tr');
+    const elapsed=Number(s.elapsedSec||0);
+    const running=String(s.running)==='true'||s.running===true;
+    tr.innerHTML=`<td>${s.analista||'-'}</td>
+      <td>${running ? (s.tarea||'-') : '<span class="small" style="color:#6b7280">—</span>'}</td>
+      <td>${running ? fmtHMS(elapsed) : '—'}</td>
+      <td>${counts[s.analista] ?? 0}</td>
+      <td>${s.updatedAt ? new Date(s.updatedAt).toLocaleString() : '-'}</td>`;
+    tb.appendChild(tr);
+  }
+}
+document.getElementById('dashRefresh').onclick = () => fetchDashboard(true);
+const dashAuto=document.getElementById('dashAuto');
+setInterval(()=>{ const visible=$('#adminDash')?.style.display!=='none'; if(visible && dashAuto?.checked) fetchDashboard(); }, 10_000);
+
+/* ========= Heartbeat (estado al servidor) ========= */
+let heartbeatTimer=null;
+function heartbeatTick(){
+  if(!SESSION) return;
+  const act = ACTIVE[SESSION.username] || [];
+  const running = act.filter(t=>t.running);
+  for(const t of running){ sendStatus({ running:true, timerObj:t }); }
+}
+function scheduleHeartbeat(){ clearHeartbeat(); heartbeatTimer=setInterval(heartbeatTick, HEARTBEAT_MS); }
+function clearHeartbeat(){ if(heartbeatTimer){ clearInterval(heartbeatTimer); heartbeatTimer=null; } }
+
+/* ========= Envíos al endpoint ========= */
+async function sendStatus({ running, timerObj }){
+  const payload={ token:SEC_TOKEN, type:'status',
+    owner: timerObj.owner, analista:timerObj.analista, tarea:timerObj.tarea, subtarea:timerObj.subtarea, proyecto:timerObj.proyecto,
+    running: !!running, startedAt: timerObj.startedAt,
+    elapsedSec: Math.max(0, Math.round(timerObj.elapsed + (timerObj.running ? (Date.now()-timerObj.lastStart)/1000 : 0)))
+  };
+  try{
+    await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload),credentials:'omit'});
+  }catch(e){
+    try{ await fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(payload),referrerPolicy:'no-referrer'});}catch(_){}
+  }
+}
+
+/* ========= Login ========= */
+document.addEventListener('DOMContentLoaded', () => {
+  const btnLogin=$('#btnLogin'), lu=$('#lu'), lp=$('#lp'), lmsg=$('#lmsg');
+
+  btnLogin.onclick = async () => {
+    const u=(lu.value||'').trim(), p=(lp.value||'');
+    const f=CFG.users.find(x=>x.username && x.username.toLowerCase()===u.toLowerCase() && x.password===p);
+    if(!f){ lmsg.textContent='Usuario o contraseña incorrectos'; return; }
+    SESSION={username:f.username, display:f.display, role:f.role}; saveSess();
+    await afterLogin();
+    await sendAudit('login');
+  };
+  lp.addEventListener('keydown', e=>{ if(e.key==='Enter') btnLogin.click(); });
+
+  $('#logout').onclick = ()=> doLogout(false);
+
+  if(SESSION){ (async()=>{ await afterLogin(); await sendAudit('login'); })(); } else { viewLogin(); }
+});
+
+/* ========= afterLogin ========= */
+async function afterLogin(){
+  $('#who').textContent=`${SESSION.display} (${SESSION.role})`;
+
+  // Traer config centralizada
+  await fetchConfigFromServer();
+
+  fillAnalysts(); fillTasks();
+
+  if(SESSION.role==='admin'){
+    $('#analista').disabled=false; $('#anote').textContent='Administrador: puede registrar para cualquier analista.';
+    fillProjectsFor(SESSION.username,false);
+    $('#adminTools').style.display='inline-block'; $('#clearAll').style.display='inline-block';
+    $('#diagCard').style.display='block'; $('#adminDash').style.display='block'; $('#viewAll').checked=true;
+    const aSel=document.getElementById('analista'); if(aSel && !aSel.value && aSel.options.length) aSel.selectedIndex=0;
+    fetchDashboard(true);
+  }else{
+    const me=CFG.users.find(u=>u.username===SESSION.username);
+    $('#analista').value=me?.display||''; $('#analista').disabled=true; $('#anote').textContent='Bloqueado por sesión (analista).';
+    fillProjectsFor(SESSION.username,true);
+    $('#adminTools').style.display='none'; $('#clearAll').style.display='none'; $('#diagCard').style.display='none'; $('#adminDash').style.display='none';
+  }
+
+  await hydrateActiveFromServer();
+  if(!ACTIVE[SESSION.username]) ACTIVE[SESSION.username]=[]; saveActive();
+
+  renderActive(); renderList(); viewApp();
+
+  const tareaSel = document.getElementById('tarea');
+  if (tareaSel && !tareaSel._wiredFillSubs) { tareaSel.addEventListener('change', fillSubtasks); tareaSel._wiredFillSubs = true; }
+
+  // presencia + idle + heartbeat
+  startPresence(); startIdleWatch(); scheduleHeartbeat();
+}
+
+/* ========= Reloj / refresco local ========= */
+setInterval(()=>{ $('#clock').textContent=new Date().toLocaleTimeString(); tickActive(); },1000);
+
+/* ========= Timers ========= */
+function currentActive(){ return ACTIVE[SESSION.username]||[]; }
+function startTask() {
+  // Si la UI de tareas aún no existe (pantalla de login), salir sin hacer nada
+  var tareaEl     = document.getElementById('tarea');
+  var subtareaEl  = document.getElementById('subtarea');
+  var proyectoEl  = document.getElementById('proyecto');
+  var comentarioEl= document.getElementById('comentario');
+  var paisEl      = document.getElementById('pais');
+  var analistaEl  = document.getElementById('analista');
+
+  if (!tareaEl || !subtareaEl || !proyectoEl || !paisEl || !analistaEl) {
+    // La UI de “Nueva tarea” no está montada todavía (probablemente estás en login)
+    return;
+  }
+
+  var tarea      = tareaEl.value;
+  var subtarea   = subtareaEl.value;
+  var proyecto   = proyectoEl.value;
+  var comentario = (comentarioEl && comentarioEl.value ? comentarioEl.value : '').trim();
+  var pais       = paisEl.value;
+  var analista   = analistaEl.value;
+
+  if (!tarea || !subtarea || !proyecto || !pais || !analista) {
+    alert('Completa Tarea, Subtarea, Proyecto, País y Analista.');
+    return;
+  }
+
+  // ✅ Leer checkbox de paralelo, pero sin romper si no existe
+  var allowParallel = false;
+  var ap = document.getElementById('allowParallel');
+  if (ap && ap.checked) allowParallel = true;
+
+  // 🔴 Si NO se permite paralelo, pausar las tareas en ejecución (comportamiento anterior)
+  if (!allowParallel) {
+    currentActive().forEach(function (t) {
+      if (t.running) {
+        t.elapsed += (now() - t.lastStart) / 1000;
+        t.running = false;
+      }
+    });
+  }
+
+  // 🟢 Crear la nueva tarea y dejarla corriendo
+  var t = {
+    id: uid(),
+    owner: SESSION.username,
+    analista: analista,
+    tarea: tarea,
+    subtarea: subtarea,
+    proyecto: proyecto,
+    pais: pais,
+    comentario: comentario,
+    startedAt: new Date().toISOString(),
+    elapsed: 0,
+    running: true,
+    lastStart: now()
+  };
+
+  ACTIVE[SESSION.username].push(t);
+  saveActive();
+  renderActive();
+
+  // Habilitar botones si existen en la vista
+  var btnPause = document.getElementById('btnPause');
+  var btnStop  = document.getElementById('btnStop');
+  if (btnPause) btnPause.disabled = false;
+  if (btnStop)  btnStop.disabled  = false;
+
+  sendStatus({ running: true, timerObj: 'start' });
+  scheduleHeartbeat();
+}
+
+function pauseCurrent(){
+  const running=currentActive().find(t=>t.running);
+  if(!running){ alert('No hay tarea corriendo.'); return; }
+  running.elapsed += (now()-running.lastStart)/1000; running.running=false; saveActive(); renderActive();
+  sendStatus({ running:false, timerObj:running });
+  const anyRunning=currentActive().some(t=>t.running); if(anyRunning) scheduleHeartbeat(); else clearHeartbeat();
+}
+function stopCurrent(){
+  const running=currentActive().find(t=>t.running) || currentActive()[0];
+  if(!running){ alert('No hay tareas en curso.'); return; }
+  sendStatus({ running:false, timerObj:running });
+  ACTIVE[SESSION.username]=currentActive().filter(t=>t.id!==running.id); saveActive(); renderActive();
+  const anyRunning=currentActive().some(t=>t.running); if(anyRunning) scheduleHeartbeat(); else clearHeartbeat();
+}
+function saveTimer(t){
+  sendStatus({ running:false, timerObj:t });
+  let end=new Date(); if(t.running){ t.elapsed += (now()-t.lastStart)/1000; t.running=false; end=new Date(); }
+  const start=new Date(t.startedAt); const secs=Math.max(1,Math.round(t.elapsed));
+  const row={ owner:t.owner, analista:t.analista, tarea:t.tarea, subtarea:t.subtarea, proyecto:t.proyecto, pais:t.pais, comentario:t.comentario, h1:start.toTimeString().slice(0,5), h2:end.toTimeString().slice(0,5), secs, fecha:end.toLocaleString() };
+  ROWS.push(row); saveRows();
+  (async()=>{
+    try{
+      const r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ token: SEC_TOKEN, ...row }),credentials:'omit'});
+      const txt=await r.text(); appendLog('✔ Sheets estándar:', txt.slice(0,160));
+    }catch(e){
+      appendLog('✖ Sheets estándar falló:', String(e));
+      try{
+        await fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({ token: SEC_TOKEN, ...row }),referrerPolicy:'no-referrer'});
+        appendLog('✔ Sheets no-cors enviado (respuesta opaca).');
+      }catch(ee){ appendLog('✖ Sheets no-cors falló:', String(ee)); }
+    }
+  })();
+  ACTIVE[SESSION.username]=currentActive().filter(x=>x.id!==t.id); saveActive(); renderActive(); renderList();
+  const anyRunning=currentActive().some(x=>x.running); if(anyRunning) scheduleHeartbeat(); else clearHeartbeat();
+}
+function renderActive(){
+  const box=$('#activeList'); box.innerHTML=''; const arr=currentActive();
+  if(!arr.length){ box.innerHTML='<div class="small">No hay tareas en curso.</div>'; $('#btnPause').disabled=true; $('#btnStop').disabled=true; return; }
+  arr.forEach(t=>{
+    const sec=t.elapsed + (t.running? (now()-t.lastStart)/1000 : 0);
+    const div=document.createElement('div'); div.className='item';
+    const meta=document.createElement('div'); meta.className='meta';
+    meta.innerHTML=`<div><strong>${t.tarea}</strong> <span class="tag">${t.subtarea}</span></div>
+                   <div class="small">${t.proyecto} • ${t.pais} • ${t.analista}</div>
+                   ${t.comentario?(`<div class="small">📝 ${t.comentario}</div>`):''}
+                   <div class="timer">⏱ ${fmtHMS(sec)} ${(t.running?'(corriendo)':'(pausada)')}</div>`;
+    const actions=document.createElement('div'); actions.className='actions';
+    const b1=document.createElement('button'); b1.className='btn small'; b1.textContent=t.running?'Pausar':'Reanudar';
+    b1.onclick=()=>{ if(t.running){ t.elapsed+=(now()-t.lastStart)/1000; t.running=false; } else { t.running=true; t.lastStart=now(); currentActive().forEach(o=>{ if(o!==t && o.running){ o.elapsed+=(now()-o.lastStart)/1000; o.running=false; } }); } saveActive(); renderActive(); sendStatus({ running:t.running, timerObj:t }); scheduleHeartbeat(); };
+    const b2=document.createElement('button'); b2.className='btn small danger'; b2.textContent='Detener';
+    b2.onclick=()=>{ if(confirm('Cancelar esta tarea en curso?')){ sendStatus({ running:false, timerObj:t }); ACTIVE[SESSION.username]=currentActive().filter(x=>x.id!==t.id); saveActive(); renderActive(); const anyRunning=currentActive().some(x=>x.running); if(anyRunning) scheduleHeartbeat(); else clearHeartbeat(); } };
+    const b3=document.createElement('button'); b3.className='btn small ghost'; b3.textContent='Guardar'; b3.onclick=()=> saveTimer(t);
+    actions.append(b1,b3,b2); div.append(meta,actions); box.appendChild(div);
+  });
+}
+function tickActive(){ if(!SESSION) return; const arr=currentActive(); if(!arr.length) return; renderActive(); }
+
+/* ========= Exportar ========= */
+function rowsForExport(){ return (SESSION && SESSION.role==='admin' && $('#viewAll').checked) ? ROWS : ROWS.filter(r=>r.owner===SESSION.username); }
+$('#exportCSV').onclick=()=>{ const rows=rowsForExport(); if(!rows.length){alert('No hay registros para exportar');return;} const headers=['owner','analista','tarea','subtarea','proyecto','pais','h1','h2','comentario','secs','fecha']; const esc=s=>{s=String(s??''); return /[",\n]/.test(s)?('"'+s.replace(/"/g,'""')+'"'):s;}; const csv=[headers.join(',')].concat(rows.map(r=>headers.map(h=>esc(r[h])).join(','))).join('\n'); const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download='registros.csv'; a.click(); };
+$('#exportXLSX').onclick=()=>{ const rows=rowsForExport(); if(!rows.length){alert('No hay registros para exportar');return;} const headers=['owner','analista','tarea','subtarea','proyecto','pais','h1','h2','comentario','secs','fecha']; const wb=XLSX.utils.book_new(); const ws=XLSX.utils.json_to_sheet(rows,{header:headers}); XLSX.utils.book_append_sheet(wb, ws, 'Registros'); XLSX.writeFile(wb,'registros.xlsx'); };
+$('#clearOwn').onclick=()=>{if(!confirm('¿Borrar SOLO tus registros?'))return; const before=ROWS.length; ROWS=ROWS.filter(r=>r.owner!==SESSION.username); saveRows(); alert('Borrados: '+(before-ROWS.length)); renderList();};
+$('#clearAll').onclick=()=>{if(SESSION.role!=='admin')return; if(!confirm('Borrar TODOS los registros?'))return; ROWS=[]; saveRows(); renderList();};
+$('#viewAll').addEventListener('change',renderList);
+
+/* ========= Admin panel ========= */
+$('#toggleAdmin').onclick=()=>{ const el=$('#admin'); el.style.display=(el.style.display==='block'?'none':'block'); if(el.style.display==='block') renderAdmin(); };
+$$('.tab-btn').forEach(b=> b.onclick=()=>{ $$('.tab-btn').forEach(x=>x.classList.remove('active')); $$('.tab').forEach(x=>x.classList.remove('active')); b.classList.add('active'); $('#tab-'+b.dataset.t).classList.add('active'); });
+function renderAdmin(){ renderUsers(); renderProjects(); renderAlloc(); renderTasksAdmin(); }
+
+/* Users */
+function renderUsers(){ const tbody=$('#tblUsers tbody'); tbody.innerHTML=''; CFG.users.forEach(u=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${u.username}</td><td>${u.display}</td><td>${u.role}</td>`; tr.onclick=()=>{ $('#u_user').value=u.username; $('#u_disp').value=u.display; $('#u_role').value=u.role; $('#u_pass').value=u.password; }; tbody.appendChild(tr); }); fillAnalysts(); const sel=$('#a_user'); sel.innerHTML=''; CFG.users.forEach(u=> sel.appendChild(new Option(u.username,u.username))); }
+$('#u_add').onclick=(e)=>{e.preventDefault(); const u=$('#u_user').value.trim().toLowerCase(), d=$('#u_disp').value.trim(), r=$('#u_role').value, p=$('#u_pass').value||'1234'; if(!u||!d){alert('Usuario y Nombre son obligatorios');return;} const i=CFG.users.findIndex(x=>x.username===u); if(i>=0) CFG.users[i]={username:u,display:d,role:r,password:p}; else CFG.users.push({username:u,display:d,role:r,password:p}); saveCfg(); pushIfAdmin(); renderUsers(); alert('Usuario guardado'); };
+$('#u_del').onclick=(e)=>{e.preventDefault(); const u=$('#u_user').value.trim().toLowerCase(); if(!u)return; if(!confirm('Eliminar '+u+'?'))return; CFG.users=CFG.users.filter(x=>x.username!==u); delete CFG.allocations[u]; saveCfg(); pushIfAdmin(); renderUsers(); alert('Eliminado'); };
+
+/* Projects */
+function renderProjects(){ const box=$('#pills'); box.innerHTML=''; CFG.projects.forEach(p=>{ const span=document.createElement('span'); span.className='pill'; span.textContent=p; const x=document.createElement('button'); x.textContent='×'; x.className='btn small danger'; x.style.marginLeft='6px'; x.onclick=()=>{ if(!confirm('Eliminar proyecto '+p+'?'))return; CFG.projects=CFG.projects.filter(pp=>pp!==p); Object.values(CFG.allocations).forEach(a=>{ a.projects=(a.projects||[]).filter(pp=>pp!==p); if(a.default===p) a.default=''; }); saveCfg(); pushIfAdmin(); renderProjects(); renderAlloc(); fillProjectsFor(SESSION.username, SESSION.role!=='admin'); }; span.appendChild(x); box.appendChild(span); }); const ap=$('#a_projects'), ad=$('#a_def'); ap.innerHTML=''; ad.innerHTML=''; CFG.projects.forEach(p=>{ ap.appendChild(new Option(p,p)); ad.appendChild(new Option(p,p)); }); }
+$('#p_add').onclick=(e)=>{e.preventDefault(); const n=$('#p_new').value.trim(); if(!n)return; if(CFG.projects.includes(n)){alert('Ya existe');return;} CFG.projects.push(n); saveCfg(); pushIfAdmin(); $('#p_new').value=''; renderProjects(); };
+
+/* Allocations */
+function renderAlloc(){ const tbody=$('#tblAlloc tbody'); tbody.innerHTML=''; Object.entries(CFG.allocations).forEach(([u,c])=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${u}</td><td>${(c.projects||[]).join(', ')}</td><td>${c.default||''}</td>`; tr.onclick=()=>{ $('#a_user').value=u; [...$('#a_projects').options].forEach(o=>o.selected=(c.projects||[]).includes(o.value)); $('#a_def').value=c.default||''; }; tbody.appendChild(tr); }); }
+$('#a_save').onclick=(e)=>{e.preventDefault(); const u=$('#a_user').value; if(!u){alert('Selecciona usuario');return;} const pro=[...$('#a_projects').selectedOptions].map(o=>o.value); const def=$('#a_def').value; if(def && !pro.includes(def)){ alert('Default debe estar dentro de proyectos'); return; } CFG.allocations[u]={projects:pro, default:def}; saveCfg(); pushIfAdmin(); renderAlloc(); alert('Asignación guardada'); };
+$('#a_clear').onclick=(e)=>{e.preventDefault(); $('#a_projects').selectedIndex=-1; $('#a_def').selectedIndex=-1; };
+
+/* Tasks + Orden + Renombrar + Subtareas */
+function renderTasksAdmin(){
+  const sel = $('#t_sel'); sel.innerHTML='';
+  const order = (CFG.taskOrder && CFG.taskOrder.length) ? CFG.taskOrder : Object.keys(CFG.tasksMap);
+  order.forEach(t => { if (CFG.tasksMap[t]) sel.appendChild(new Option(t,t)); });
+  renderTaskTable(); renderSubPills(); renderOrderList();
+
+  $('#t_sel').onchange = renderSubPills;
+
+  $('#t_add').onclick = (e) => {
+    e.preventDefault();
+    const n = $('#t_new').value.trim(); if (!n) return;
+    if (CFG.tasksMap[n]) { alert('La tarea ya existe'); return; }
+    CFG.tasksMap[n] = []; CFG.taskOrder.push(n); saveCfg(); pushIfAdmin(); $('#t_new').value = ''; renderTasksAdmin();
+  };
+
+  $('#t_del').onclick = (e) => {
+    e.preventDefault();
+    const t = $('#t_sel').value; if (!t) return;
+    if (!confirm(`Eliminar tarea "${t}"?`)) return;
+    delete CFG.tasksMap[t]; CFG.taskOrder = CFG.taskOrder.filter(x => x !== t); saveCfg(); pushIfAdmin(); renderTasksAdmin();
+  };
+
+  $('#t_ren').onclick = (e) => {
+    e.preventDefault();
+    const oldName = $('#t_sel').value; if (!oldName) return;
+    const newName = ( $('#t_rename').value || '' ).trim() || prompt('Nuevo nombre para la tarea:', oldName)?.trim();
+    if (!newName || newName === oldName) return;
+    if (CFG.tasksMap[newName]) { alert('Ya existe una tarea con ese nombre.'); return; }
+    const subs = CFG.tasksMap[oldName] || []; delete CFG.tasksMap[oldName]; CFG.tasksMap[newName] = subs;
+    CFG.taskOrder = (CFG.taskOrder || []).map(n => n === oldName ? newName : n); saveCfg(); pushIfAdmin(); $('#t_rename').value=''; renderTasksAdmin(); fillTasks();
+  };
+
+  $('#s_add').onclick = (e) => {
+    e.preventDefault();
+    const t = $('#t_sel').value; if (!t) return;
+    const s = $('#s_new').value.trim(); if (!s) return;
+    const arr = CFG.tasksMap[t] || (CFG.tasksMap[t] = []); if (arr.includes(s)) { alert('La subtarea ya existe en esta tarea.'); return; }
+    arr.push(s); saveCfg(); pushIfAdmin(); $('#s_new').value = ''; renderSubPills(); renderTaskTable(); fillSubtasks();
+  };
+}
+function renderTaskTable(){ const tbody=$('#tblTask tbody'); if(!tbody) return; tbody.innerHTML=''; Object.entries(CFG.tasksMap).forEach(([t,subs])=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td>${t}</td><td>${(subs||[]).join(', ')}</td>`; tbody.appendChild(tr); }); }
+function renderSubPills(){ const t=$('#t_sel').value; const box=$('#s_pills'); if(!box) return; const subs=CFG.tasksMap[t]||[]; box.innerHTML=''; subs.forEach(s=>{ const span=document.createElement('span'); span.className='pill'; span.textContent=s; const x=document.createElement('button'); x.textContent='×'; x.className='btn small danger'; x.style.marginLeft='6px'; x.onclick=()=>{ if(!confirm(`Eliminar subtarea "${s}"?`))return; CFG.tasksMap[t]=subs.filter(ss=>ss!==s); saveCfg(); pushIfAdmin(); renderSubPills(); renderTaskTable(); fillSubtasks(); }; span.appendChild(x); box.appendChild(span); }); }
+function renderOrderList(){ const box=$('#orderList'); if(!box) return; const order=(CFG.taskOrder&&CFG.taskOrder.length)?CFG.taskOrder:Object.keys(CFG.tasksMap); box.innerHTML=''; order.forEach((name,idx)=>{ if(!CFG.tasksMap[name])return; const row=document.createElement('div'); row.className='order-row'; row.innerHTML=`<div class="order-idx">${idx+1}.</div><div style="flex:1">${name}</div><div><button class="btn small ghost" data-act="up" data-name="${name}">↑</button> <button class="btn small ghost" data-act="down" data-name="${name}">↓</button></div>`; box.appendChild(row); }); box.querySelectorAll('button[data-act]').forEach(btn=>{ btn.onclick=()=>{ const act=btn.dataset.act, name=btn.dataset.name; const arr=(CFG.taskOrder&&CFG.taskOrder.length)?CFG.taskOrder.slice():Object.keys(CFG.tasksMap); const i=arr.indexOf(name); if(i<0)return; if(act==='up'&&i>0)[arr[i-1],arr[i]]=[arr[i],arr[i-1]]; if(act==='down'&&i<arr.length-1)[arr[i+1],arr[i]]=[arr[i],arr[i+1]]; CFG.taskOrder=arr; saveCfg(); pushIfAdmin(); renderOrderList(); fillTasks(); }; }); }
+
+/* ========= Diagnóstico ========= */
+$('#btnPing').onclick=async()=>{ appendLog('→ GET', ENDPOINT); try{ const r=await fetch(ENDPOINT,{method:'GET'}); const t=await r.text(); appendLog('✔ GET resp:', t.slice(0,200)); }catch(e){ appendLog('✖ GET falló:', String(e)); } };
+function appendLog(){ const el=$('#log'); el.textContent += Array.from(arguments).join(' ') + "\n"; }
+
+/* ========= Botones globales ========= */
+document.getElementById('btnStart').addEventListener('click', (e)=>{ e.preventDefault(); startTask(); });
+document.getElementById('btnPause').addEventListener('click', (e)=>{ e.preventDefault(); pauseCurrent(); });
+document.getElementById('btnStop').addEventListener('click',  (e)=>{ e.preventDefault(); stopCurrent();  });
+
+/* ========= Último ping al cerrar ========= */
+window.addEventListener('beforeunload', () => {
+  try { heartbeatTick(); } catch(_) {}
+  clearHeartbeat();
+  if (SESSION) sendAudit('logout');
+});
+</script>
+</body>
+</html>
