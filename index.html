@@ -1036,23 +1036,23 @@ function stopCurrent(){
   ACTIVE[SESSION.username]=currentActive().filter(t=>t.id!==running.id); saveActive(); renderActive();
   const anyRunning=currentActive().some(t=>t.running); if(anyRunning) scheduleHeartbeat(); else clearHeartbeat();
 }
-function saveTimer(t){
-  sendStatus({ running:false, timerObj:t });
-  let end=new Date(); if(t.running){ t.elapsed += (now()-t.lastStart)/1000; t.running=false; end=new Date(); }
-  const start=new Date(t.startedAt); const secs=Math.max(1,Math.round(t.elapsed));
-  const row={ owner:t.owner, analista:t.analista, tarea:t.tarea, subtarea:t.subtarea, proyecto:t.proyecto, pais:t.pais, comentario:t.comentario, h1:start.toTimeString().slice(0,5), h2:end.toTimeString().slice(0,5), secs, fecha:end.toLocaleString() };
-  ROWS.push(row); saveRows();
-  (async()=>{
-    try{
-      const r=await fetch(ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ token: SEC_TOKEN, ...row }),credentials:'omit'});
-      const txt=await r.text(); appendLog('✔ Sheets estándar:', txt.slice(0,160));
-    }catch(e){
-      appendLog('✖ Sheets estándar falló:', String(e));
-      try{
-        await fetch(ENDPOINT,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({ token: SEC_TOKEN, ...row }),referrerPolicy:'no-referrer'});
-        appendLog('✔ Sheets no-cors enviado (respuesta opaca).');
-      }catch(ee){ appendLog('✖ Sheets no-cors falló:', String(ee)); }
-    }
+(async () => {
+  try {
+    await fetch(ENDPOINT, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ token: SEC_TOKEN, ...row }),
+      cache: 'no-store',
+      redirect: 'follow',
+      referrerPolicy: 'no-referrer'
+    });
+    appendLog('✓ Enviado a Sheets (no-cors).');
+  } catch (e) {
+    appendLog('✗ Envío a Sheets falló: ' + String(e));
+  }
+})();
+
   })();
   ACTIVE[SESSION.username]=currentActive().filter(x=>x.id!==t.id); saveActive(); renderActive(); renderList();
   const anyRunning=currentActive().some(x=>x.running); if(anyRunning) scheduleHeartbeat(); else clearHeartbeat();
@@ -1169,6 +1169,7 @@ window.addEventListener('beforeunload', () => {
 </script>
 </body>
 </html>
+
 
 
 
