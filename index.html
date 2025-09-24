@@ -1040,7 +1040,7 @@ function stopCurrent(){
   try {
     await fetch(ENDPOINT, {
       method: 'POST',
-      mode: 'no-cors',
+      mode: 'no-cors', // importante para evitar CORS en GitHub Pages
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ token: SEC_TOKEN, ...row }),
       cache: 'no-store',
@@ -1050,9 +1050,9 @@ function stopCurrent(){
     appendLog('✓ Enviado a Sheets (no-cors).');
   } catch (e) {
     appendLog('✗ Envío a Sheets falló: ' + String(e));
+  }
 })();
 
-  })();
   ACTIVE[SESSION.username]=currentActive().filter(x=>x.id!==t.id); saveActive(); renderActive(); renderList();
   const anyRunning=currentActive().some(x=>x.running); if(anyRunning) scheduleHeartbeat(); else clearHeartbeat();
 }
@@ -1168,6 +1168,7 @@ window.addEventListener('beforeunload', () => {
 </script>
 </body>
 </html>
+
 
 
 
