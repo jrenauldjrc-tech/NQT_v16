@@ -1058,7 +1058,7 @@ function stopCurrent(){
 
   ACTIVE[SESSION.username]=currentActive().filter(x=>x.id!==t.id); saveActive(); renderActive(); renderList();
   const anyRunning=currentActive().some(x=>x.running); if(anyRunning) scheduleHeartbeat(); else clearHeartbeat();
-}
+
 function renderActive(){
   const box=$('#activeList'); box.innerHTML=''; const arr=currentActive();
   if(!arr.length){ box.innerHTML='<div class="small">No hay tareas en curso.</div>'; $('#btnPause').disabled=true; $('#btnStop').disabled=true; return; }
@@ -1171,6 +1171,7 @@ window.addEventListener('beforeunload', () => {
 </script>
 </body>
 </html>
+
 
 
 
