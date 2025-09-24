@@ -1050,6 +1050,10 @@ function stopCurrent(){
     appendLog('✓ Enviado a Sheets (no-cors).');
   } catch (e) {
     appendLog('✗ Envío a Sheets falló: ' + String(e));
+}
+
+
+
 })();
 
   ACTIVE[SESSION.username]=currentActive().filter(x=>x.id!==t.id); saveActive(); renderActive(); renderList();
@@ -1167,6 +1171,7 @@ window.addEventListener('beforeunload', () => {
 </script>
 </body>
 </html>
+
 
 
 
