@@ -1060,7 +1060,7 @@ function stopCurrent(){
 
   const anyRunning = currentActive().some(x => x.running);
   if (anyRunning) scheduleHeartbeat(); else clearHeartbeat();
-}  
+  
 })();
 
  {
@@ -1179,6 +1179,7 @@ window.addEventListener('beforeunload', () => {
 </script>
 </body>
 </html>
+
 
 
 
