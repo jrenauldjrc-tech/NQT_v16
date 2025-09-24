@@ -1018,7 +1018,7 @@ function startTask() {
   if (btnPause) btnPause.disabled = false;
   if (btnStop)  btnStop.disabled  = false;
 
-  sendStatus({ running: true, timerObj: 'start' });
+  sendStatus({ running: true, timerObj: t });
   scheduleHeartbeat();
 }
 
@@ -1036,30 +1036,68 @@ function stopCurrent(){
   ACTIVE[SESSION.username]=currentActive().filter(t=>t.id!==running.id); saveActive(); renderActive();
   const anyRunning=currentActive().some(t=>t.running); if(anyRunning) scheduleHeartbeat(); else clearHeartbeat();
 }
-  (async () => {
-  try {
-    await fetch(ENDPOINT, {
-      method: 'POST',
-      mode: 'no-cors', // importante para GitHub Pages
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ token: SEC_TOKEN, ...row }),
-      cache: 'no-store',
-      redirect: 'follow',
-      referrerPolicy: 'no-referrer'
-    });
-    appendLog('✓ Enviado a Sheets (no-cors).');
-  } catch (e) {
-    appendLog('✗ Envío a Sheets falló: ' + String(e));
+
+function saveTimer(t){
+  // Cierra tiempo si estuviera corriendo
+  const end = new Date();
+  if (t.running){
+    t.elapsed += (Date.now() - t.lastStart) / 1000;
+    t.running = false;
   }
-})();   // <-- sólo una vez
 
-ACTIVE[SESSION.username] = currentActive().filter(x => x.id !== t.id);
-saveActive();
-renderActive();
-renderList();
+  // Armar fila para guardar/local y enviar
+  const row = {
+    owner: SESSION.username,
+    analista: t.analista,
+    tarea: t.tarea,
+    subtarea: t.subtarea,
+    proyecto: t.proyecto,
+    pais: t.pais,
+    comentario: t.comentario,
+    h1: new Date(t.startedAt).toTimeString().slice(0,8),
+    h2: end.toTimeString().slice(0,8),
+    secs: Math.max(1, Math.round(t.elapsed)),
+    fecha: end.toLocaleDateString()
+  };
 
-const anyRunning = currentActive().some(x => x.running);
-if (anyRunning) scheduleHeartbeat(); else clearHeartbeat();
+  // Guardar local
+  ROWS.push(row);
+  saveRows();
+
+  // Enviar al Apps Script: JSON normal y, si falla por CORS, fallback no-cors
+  (async () => {
+    try {
+      await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: SEC_TOKEN, ...row })
+      });
+    } catch (_){
+      try {
+        await fetch(ENDPOINT, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ token: SEC_TOKEN, ...row }),
+          cache: 'no-store',
+          redirect: 'follow',
+          referrerPolicy: 'no-referrer'
+        });
+      } catch (_){}
+    }
+  })();
+
+  // Quitar tarea de activos y refrescar
+  ACTIVE[SESSION.username] = currentActive().filter(x => x.id !== t.id);
+  saveActive();
+  renderActive();
+  renderList();
+
+  // Mantener/limpiar heartbeat
+  const anyRunning = currentActive().some(x => x.running);
+  if (anyRunning) scheduleHeartbeat(); else clearHeartbeat();
+}
+
 
 function renderActive(){
   const box=$('#activeList'); box.innerHTML=''; const arr=currentActive();
@@ -1173,6 +1211,7 @@ window.addEventListener('beforeunload', () => {
 </script>
 </body>
 </html>
+
 
 
 
