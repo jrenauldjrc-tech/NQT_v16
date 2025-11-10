@@ -652,6 +652,7 @@ const CONFIG_KEY='cfg_v10', SESSION_KEY='sess_v1', ROWS_KEY='rows_v2', ACTIVE_KE
 /* ===== Config por defecto ===== */
 const DEFAULT_CFG={ users:[
   { username:'valentina',  password:'1234', display:'Valentina Londoño Cardenas', role:'analyst' },
+  { username:'Edder',  password:'1234', display:'Edder Ameth Herrera Jimenez', role:'analyst' },
   { username:'stephanie',  password:'1234', display:'Stephanie Morales Sanchun', role:'analyst' },
   { username:'roger',      password:'1234', display:'Roger Andrés Herrera Álvarez', role:'analyst' },
   { username:'jaroth',     password:'1234', display:'Jaroth Aragón Gonzalez', role:'analyst' },
@@ -669,14 +670,14 @@ const DEFAULT_CFG={ users:[
   { username:'rodrigo',    password:'1234', display:'Rodrigo de Jesus Cajar Gonzalez', role:'analyst' },
   { username:'admin',      password:'admin123', display:'Administrador', role:'admin' }
 ], projects:[
-  'AyA','AyA Correos','AyA Redes Sociales','BAC','BAC Soporte',
+  'AyA','AyA Correos','AyA Redes Sociales','BAC','BAC Soporte','AyA Cobros',
   'Banca Fácil Inbound','Banca Fácil Redes Sociales','Banco Nacional Chat','Banco Nacional Cobros','Banco Nacional Correos','Banco Nacional Inbound','Banco Nacional Outbound',
   'BCR Gobierno Digital','BCR N1','BCR Redes Sociales','CCSS_Pensiones','Firma Digital',
   'ICE N1','ICE N1 Correos','ICE N2','Liberty Movil','Liberty Pymes','Liberty Residencial',
   'MAPFRE','MUCAP','Telecable','CCSS CISADI','Natury'
 ], allocations:{
-  valentina:{projects:['AyA','AyA Redes Sociales','MAPFRE','MUCAP'],default:'AyA'},
-  stephanie:{projects:['AyA','AyA Correos','AyA Redes Sociales'],default:'AyA'},
+  valentina:{projects:['AyA','AyA Redes Sociales','MAPFRE','MUCAP','AyA Cobros'],default:'AyA'},
+  stephanie:{projects:['AyA','AyA Correos','AyA Redes Sociales','AyA Cobros'],default:'AyA'},
   roger:{projects:['BAC','BAC Soporte','Firma Digital'],default:'BAC'},
   jaroth:{projects:['Banca Fácil Inbound','Banca Fácil Redes Sociales'],default:'Banca Fácil Inbound'},
   erick:{projects:['Banco Nacional Chat','Banco Nacional Correos','Banco Nacional Inbound'],default:'Banco Nacional Inbound'},
@@ -1169,3 +1170,4 @@ window.addEventListener('beforeunload', () => {
 </script>
 </body>
 </html>
+
